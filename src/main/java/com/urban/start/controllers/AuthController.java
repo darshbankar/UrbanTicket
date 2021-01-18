@@ -1,5 +1,6 @@
 package com.urban.start.controllers;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -16,22 +17,29 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.urban.start.models.ERole;
+import com.urban.start.models.Movie;
 import com.urban.start.models.Role;
 import com.urban.start.models.User;
 import com.urban.start.payload.request.LoginRequest;
+import com.urban.start.payload.request.MovieRequest;
 import com.urban.start.payload.request.SignupRequest;
 import com.urban.start.payload.response.JwtResponse;
 import com.urban.start.payload.response.MessageResponse;
+import com.urban.start.repository.MovieRepository;
 import com.urban.start.repository.RoleRepository;
 import com.urban.start.repository.UserRepository;
 import com.urban.start.security.jwt.JwtUtils;
 import com.urban.start.security.services.UserDetailsImpl;
+
+
 
 
 @CrossOrigin(origins = "*", maxAge = 3600)
@@ -46,6 +54,9 @@ public class AuthController {
 
 	@Autowired
 	RoleRepository roleRepository;
+	
+	@Autowired
+	MovieRepository movieRepository;
 
 	@Autowired
 	PasswordEncoder encoder;
@@ -96,12 +107,11 @@ public class AuthController {
 							 encoder.encode(signUpRequest.getPassword()));
 
 		Set<String> strRoles = signUpRequest.getRole();
-		System.out.println(signUpRequest.getRole());
-		System.out.println(signUpRequest.getName());
+		
 		Set<Role> roles = new HashSet<>();
 
 		if (strRoles == null) {
-			System.out.println("role is null");
+			
 			Role userRole = roleRepository.findByName(ERole.ROLE_USER)
 					.orElseThrow(() -> new RuntimeException("Error: Role is not found."));
 			roles.add(userRole);
@@ -133,4 +143,58 @@ public class AuthController {
 
 		return ResponseEntity.ok(new MessageResponse("User registered successfully!"));
 	}
+
+	@PostMapping("/addmovies")
+	public ResponseEntity<?> addMovies(@Valid @RequestBody MovieRequest movieRequest) {
+		Movie movie = new Movie(movieRequest.getName(),movieRequest.getLanguage(),movieRequest.getGenre(),
+			movieRequest.getDescription(),movieRequest.getDate(),movieRequest.getTime(),
+			movieRequest.getImage());
+	
+		String strUser = movieRequest.getUser();
+	
+		Set<User> users = new HashSet<>();
+	
+		User movieUser = userRepository.findByUsername(strUser)
+			.orElseThrow(() -> new RuntimeException("Error: User Not Found."));
+	
+		users.add(movieUser);
+	
+		movie.setUser(users);
+		movieRepository.save(movie);
+	
+		return ResponseEntity.ok(new MessageResponse("Movie added successfully!"));
+	}
+
+	@GetMapping("/getmovies")
+	public List<Movie> getAllMovies(){
+		return movieRepository.findAll();
+	}
+
+
+	@GetMapping("/getmovies/{id}")
+	public ResponseEntity<List<Movie>> getMovieById(@PathVariable Long id) {
+		List<Movie> movies = movieRepository.findAll();
+		System.out.println(movies);
+		// return ResponseEntity.ok(movies);
+		// Set<User> usersid = new HashSet<User>();
+		
+		List<Movie> selectedmovies = new ArrayList<Movie>();
+		
+		movies.forEach(data -> {
+			Set<User> usersid = data.getUser();
+			usersid.forEach(userdata -> {
+				if(id == userdata.getId()) {
+					selectedmovies.add(data);
+				}
+			});	
+		});
+		
+		return ResponseEntity.ok(selectedmovies);
+	}
+	
+	@GetMapping("/getuser/{id}")
+	public ResponseEntity<List<User>> getUserById(@PathVariable Long id) {
+		List<User> users = userRepository.findAll();
+		return ResponseEntity.ok(users);
+}
 }
