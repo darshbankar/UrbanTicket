@@ -16,20 +16,20 @@ public class TestController {
 	}
 	
 	@GetMapping("/user")
-	@PreAuthorize("hasRole('USER') or hasRole('MANAGER') or hasRole('ADMIN')")
+	@PreAuthorize("hasRole('USER')")
 	public String userAccess() {
-		return "User Content.";
+		return "User Page.";
 	}
 
 	@GetMapping("/mod")
 	@PreAuthorize("hasRole('MANAGER')")
 	public String moderatorAccess() {
-		return "Moderator Board.";
+		return "Manager Page.";
 	}
 
 	@GetMapping("/admin")
 	@PreAuthorize("hasRole('ADMIN')")
 	public String adminAccess() {
-		return "Admin Board.";
+		return "Admin Page.";
 	}
 }

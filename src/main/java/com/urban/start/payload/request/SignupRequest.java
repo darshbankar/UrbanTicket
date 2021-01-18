@@ -1,5 +1,6 @@
 package com.urban.start.payload.request;
 
+import java.util.HashSet;
 import java.util.Set;
 
 import javax.validation.constraints.*;
@@ -73,8 +74,10 @@ public class SignupRequest {
 		return role;
 	}
 
-	public void setRole(Set<String> role) {
-		this.role = role;
+	public void setRole(String role) {
+		Set<String> set = new HashSet<String>();
+		set.add(role);
+		this.role = set;
 	}
 
 

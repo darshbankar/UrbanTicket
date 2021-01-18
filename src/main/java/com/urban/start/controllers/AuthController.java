@@ -69,8 +69,10 @@ public class AuthController {
 
 		return ResponseEntity.ok(new JwtResponse(jwt, 
 												 userDetails.getId(), 
+												 userDetails.getName(),
 												 userDetails.getUsername(), 
 												 userDetails.getEmail(), 
+												 userDetails.getMobileno(),
 												 roles));
 	}
 
@@ -87,16 +89,19 @@ public class AuthController {
 					.badRequest()
 					.body(new MessageResponse("Error: Email is already in use!"));
 		}
-
+		
 		// Create new user's account
 		User user = new User(signUpRequest.getName(),signUpRequest.getUsername(), 
 							 signUpRequest.getEmail(),signUpRequest.getMobileno(),
 							 encoder.encode(signUpRequest.getPassword()));
 
 		Set<String> strRoles = signUpRequest.getRole();
+		System.out.println(signUpRequest.getRole());
+		System.out.println(signUpRequest.getName());
 		Set<Role> roles = new HashSet<>();
 
 		if (strRoles == null) {
+			System.out.println("role is null");
 			Role userRole = roleRepository.findByName(ERole.ROLE_USER)
 					.orElseThrow(() -> new RuntimeException("Error: Role is not found."));
 			roles.add(userRole);
